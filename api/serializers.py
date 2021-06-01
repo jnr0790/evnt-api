@@ -5,6 +5,11 @@ from .models.mango import Mango
 from .models.user import User
 from .models.event import Event
 
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('id', 'name', 'location', 'date', 'time', 'owner')
+
 class MangoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mango
