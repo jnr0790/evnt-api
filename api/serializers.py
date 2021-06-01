@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models.mango import Mango
 from .models.user import User
+from .models.event import Event
 
 class MangoSerializer(serializers.ModelSerializer):
     class Meta:
