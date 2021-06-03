@@ -1,2 +1,2 @@
-web: gunicorn evnt-api.wsgi
+web: gunicorn evnt.wsgi
 release: python manage.py migrate
