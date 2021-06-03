@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from ..models.event import Event
 from ..serializers import EventSerializer
 
+import json
+
 class Events(generics.ListCreateAPIView):
     permission_classes=(IsAuthenticated,)
     serializer_class = EventSerializer
@@ -17,8 +19,9 @@ class Events(generics.ListCreateAPIView):
         return Response({ 'events': data })
 
     def post(self, request):
-        request.data['event']['owner'] = request.user.id
-        event = EventSerializer(data=request.data['event'])
+        data = json.loads(request.body)
+        data['event']['owner'] = request.user.id
+        event = EventSerializer(data=data['event'])
 
         if event.is_valid():
             event.save()
@@ -48,13 +51,14 @@ class EventDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def partial_update(self, request, pk):
         event = get_object_or_404(Event, pk=pk)
+        data = json.loads(request.body)
 
         if not request.user.id == event.owner.id:
             raise PermissionDenied("Unauthorized, you don't own this event")
 
-        request.data['event']['owner'] = request.user.id
+        data['event']['owner'] = request.user.id
 
-        data = EventSerializer(event, data=request.data['event'], partial=True)
+        data = EventSerializer(event, data=data['event'], partial=True)
         if data.is_valid():
             data.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
