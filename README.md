@@ -41,15 +41,25 @@ Getting the Django API to communicate with Mapbox API.
 ![EVNT ERD](https://i.imgur.com/y4IQCu6.png)
 
 ## Instructions
+- To make requests to the API go to the [EVNT](https://jnr0790.github.io/evnt-client/) website
+- Sign Up for an account to make the `POST` call to `/sign-up/`.
+- Sign In using your existing account to make the `POST` call to `/sign-in/`.
+- Click the New Event option on the menu to create and event to make the `POST` call to `/events/`.
+- Click the View Events to see all events you've created to make the `GET` call to `/events/`.
+- On the events click the View button to view a single event to make the `GET` call to `/events/id/`.
+- In single event view you can click delete to remove the event from your list of events to make the `DELETE` call to `/events/id/`.
+- Also, in single event view you can click update to update the event using the ID which is seen in the single event view to make the `PATCH` call to `/events/id/`.
+- To change password you click the Change Password option on the menu to make the `PATCH` call to `/change-pw/`.
+- To sign out simply click the Sign Out option on the menu to make the `DELETE` call to `/sign-out/`.
 
 ## Routes
 ### Authentication
 
 | Verb   | URI Pattern            | Controller#Action |
 |--------|------------------------|-------------------|
-| POST   | `/sign-up`             | `users#signup`    |
-| POST   | `/sign-in`             | `users#signin`    |
-| PATCH  | `/change-password/`    | `users#changepw`  |
+| POST   | `/sign-up/`            | `users#signup`    |
+| POST   | `/sign-in/`            | `users#signin`    |
+| PATCH  | `/change-pw/`          | `users#changepw`  |
 | DELETE | `/sign-out/`           | `users#signout`   |
 
 #### POST /sign-up
@@ -73,19 +83,17 @@ echo
 ```
 
 ```sh
-curl-scripts/sign-up.sh
+EMAIL=example@q.com PASSWORD=example sh curl-scripts/auth/sign-up.sh
 ```
 
 Response:
 
 ```md
 HTTP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
 
-{
-  "user": {
-    "id": 1,
-    "email": "an@example.email"
+{"user":
+  {"id":6,
+  "email":"example@q.com"
   }
 }
 ```
@@ -95,7 +103,7 @@ Content-Type: application/json; charset=utf-8
 Request:
 
 ```sh
-curl "http://localhost:8000/sign-in/" \
+curl "https://evnt-api.herokuapp.com/sign-in/" \
   --include \
   --request POST \
   --header "Content-Type: application/json" \
@@ -110,20 +118,18 @@ echo
 ```
 
 ```sh
-curl-scripts/sign-in.sh
+EMAIL=example@q.com PASSWORD=example sh curl-scripts/auth/sign-in.sh
 ```
 
 Response:
 
 ```md
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
 
-{
-  "user": {
-    "id": 1,
-    "email": "an@example.email",
-    "token": "33ad6372f795694b333ec5f329ebeaaa"
+{"user":
+  {"id":6,
+  "email":"example@q.com",
+  "token":"c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc"
   }
 }
 ```
@@ -133,7 +139,7 @@ Content-Type: application/json; charset=utf-8
 Request:
 
 ```sh
-curl "http://localhost:8000/change-pw/" \
+curl "https://evnt-api.herokuapp.com/change-pw/" \
   --include \
   --request PATCH \
   --header "Content-Type: application/json" \
@@ -149,7 +155,7 @@ echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa curl-scripts/change-password.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc OLDPW=example NEWPW=newpw sh curl-scripts/auth/change-pw.sh
 ```
 
 Response:
@@ -163,7 +169,7 @@ HTTP/1.1 204 No Content
 Request:
 
 ```sh
-curl "http://localhost:8000/sign-out/" \
+curl "https://evnt-api.herokuapp.com/sign-out/" \
   --include \
   --request DELETE \
   --header "X-CSRFToken: ${CSRF}" \
@@ -173,7 +179,7 @@ echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa curl-scripts/sign-out.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc sh curl-scripts/auth/sign-out.sh
 ```
 
 Response:
@@ -182,239 +188,184 @@ Response:
 HTTP/1.1 204 No Content
 ```
 
-### Posts
+### Events
 
 | Verb   | URI Pattern          | Controller#Action              |
 |--------|----------------------|--------------------------------|
-| POST   | `/posts`             | `users#Create Post`            |
-| GET    | `/posts`             | `users#View All Posts`         |
-| GET    | `/users/:userId`     | `users#View Posts By One User` |
-| GET    | `/posts/:postId`     | `users#View One Post`          |
-| PATCH  | `/posts/:id`         | `users#Update Post`            |
-| DELETE | `/posts/:id`         | `users#Destroy Post`           |
+| POST   | `/events/`           | `users#Create Event`           |
+| GET    | `/events/`           | `users#View All Events`        |
+| GET    | `/events/id/`        | `users#View One Event`         |
+| PATCH  | `/events/id/`        | `users#Update Event`           |
+| DELETE | `/events/id/`        | `users#Destroy Event`          |
 
-#### POST /posts
+#### POST /events
 
 Request:
 
 ```sh
-curl "https://evnt-api.herokuapp.com" \
+curl "https://evnt-api.herokuapp.com/events/" \
   --include \
   --request POST \
   --header "Content-Type: application/json" \
-  --header "Authorization: Bearer $TOKEN" \
+  --header "Authorization: Token ${TOKEN}" \
   --data '{
-    "post": {
-      "text": "Text Of The Post"
+    "event": {
+      "name": "'"${NAME}"'",
+      "location": "'"${LOCATION}"'",
+      "date": "'"${DATE}"'",
+      "time": "'"${TIME}"'"
     }
   }'
+
+echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa curl-scripts/posts/create.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc NAME="Event" LOCATION="Somewhere" DATE="9/5/2021" TIME="4pm" sh curl-scripts/events/create.sh
 ```
 
 Response:
 
 ```md
-TP/1.1 201 Created
-Content-Type: application/json; charset=utf-8
+HTTP/1.1 201 Created
 
-{"post":
-  {
-    "_id":"60988d0f7e39ba00153ea5d6",
-    "text":"Text Of The Post",
-    "owner":"60988ca97e39ba00153ea5d5",
-    "ownerEmail":"an@example.email",
-    "comments":[],
-    "createdAt":"2021-05-10T01:31:59.280Z",
-    "updatedAt":"2021-05-10T01:31:59.280Z",
-    "__v":0
+{"event":
+  {"id":12,
+  "name":"Event",
+  "location":"Somewhere",
+  "date":"9/5/2021",
+  "time":"4pm",
+  "owner":6
   }
 }
 ```
 
-#### GET /posts
+#### GET /events
 
 Request:
 
 ```sh
-curl "https://evnt-api.herokuapp.com" \
+curl "https://evnt-api.herokuapp.com/events/" \
   --include \
-  --request GET
-  --header "Authorization: Bearer $TOKEN"
+  --request GET \
+  --header "Authorization: Token ${TOKEN}"
+
+echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa curl-scripts/posts/index.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc sh curl-scripts/events/index.sh
 ```
 
 Response:
 
 ```md
-TP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+HTTP/1.1 200 OK
 
-{"posts":
+{"events":
   [
-    {
-      "_id":"609bdcd2c23acd1c3c28ac8c",
-      "text":"r",
-      "owner":"60997e719523eb36eca8bce9",
-      "ownerEmail":"cat@dog",
-      "comments":[],
-      "createdAt":"2021-05-12T13:49:06.426Z",
-      "updatedAt":"2021-05-12T13:49:06.426Z",
-      "__v":0
+    {"id":12,
+    "name":"Event",
+    "location":"Somewhere",
+    "date":"9/5/2021",
+    "time":"4pm",
+    "owner":6
     },
-    {
-      "_id":"609bdcd8c23acd1c3c28ac8d",
-      "text":"t",
-      "owner":"60997e719523eb36eca7c9b1",
-      "ownerEmail":"user@email",
-      "comments":[],
-      "createdAt":"2021-05-12T13:49:12.278Z",
-      "updatedAt":"2021-05-12T13:49:12.278Z",
-      "__v":0
+    {"id":13,
+    "name":"Event 2",
+    "location":"Here",
+    "date":"2/6/22",
+    "time":"8pm",
+    "owner":6
     }
   ]
 }
 ```
 
-#### GET /users/:userId
+#### GET /events/:eventId
 
 Request:
 
 ```sh
-curl "https://evnt-api.herokuapp.com/users/$USER_ID" \
+curl "https://evnt-api.herokuapp.com/events/${ID}/" \
   --include \
-  --request GET
-  --header "Authorization: Bearer $TOKEN"
+  --request GET \
+  --header "Authorization: Token ${TOKEN}"
+
+echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa USER_ID=609be624c23acd1c3c28ac8f curl-scripts/users/show.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc ID=13 sh curl-scripts/events/show.sh
 ```
 
 Response:
 
 ```md
-TP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+HTTP/1.1 200 OK
 
-{"posts":
-  {
-    [
-      {
-        "_id":"609be62bc23acd1c3c28ac90",
-        "text":"hi",
-        "owner":"609be624c23acd1c3c28ac8f",
-        "ownerEmail":"blue@green",
-        "comments":[],
-        "createdAt":"2021-05-12T14:28:59.115Z",
-        "updatedAt":"2021-05-12T14:28:59.115Z",
-        "__v":0
-      },
-      {
-        "_id":"609be62ec23acd1c3c28ac91",
-        "text":"hello",
-        "owner":"609be624c23acd1c3c28ac8f",
-        "ownerEmail":"blue@green",
-        "comments":[],
-        "createdAt":"2021-05-12T14:29:02.857Z",
-        "updatedAt":"2021-05-12T14:29:02.857Z",
-        "__v":0
-      }
-    ]
+{"event":
+  {"id":13,
+  "name":"Event 2",
+  "location":"Here",
+  "date":"2/6/22",
+  "time":"8pm",
+  "owner":6
   }
 }
 ```
 
-#### GET /posts/:postId
+#### PATCH /events/:eventId
 
 Request:
 
 ```sh
-curl "https://evnt-api.herokuapp.com/$POST_ID" \
-  --include \
-  --request GET
-  --header "Authorization: Bearer $TOKEN"
-```
-
-```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa POST_ID=609be62ec23acd1c3c28ac91 curl-scripts/posts/show.sh
-```
-
-Response:
-
-```md
-TP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-
-{
-  "post":{
-    "_id":"609be62ec23acd1c3c28ac91",
-    "text":"hello",
-    "owner":"609be624c23acd1c3c28ac8f",
-    "ownerEmail":"blue@green",
-    "comments":[],
-    "createdAt":"2021-05-12T14:29:02.857Z",
-    "updatedAt":"2021-05-12T14:29:02.857Z",
-    "__v":0
-  }
-}
-```
-
-#### PATCH /posts/:postId
-
-Request:
-
-```sh
-curl "https://evnt-api.herokuapp.com/$POST_ID" \
+curl "https://evnt-api.herokuapp.com/events/${ID}/" \
   --include \
   --request PATCH \
   --header "Content-Type: application/json" \
-  --header "Authorization: Bearer $TOKEN" \
+  --header "Authorization: Token ${TOKEN}" \
   --data '{
-      "post": {
-        "text": "New Text"
-      }
-    }'
+    "event": {
+      "name": "'"${NAME}"'",
+      "location": "'"${LOCATION}"'",
+      "date": "'"${DATE}"'",
+      "time": "'"${TIME}"'"
+    }
+  }'
+
+echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa POST_ID=609be62ec23acd1c3c28ac91 curl-scripts/posts/update.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc ID=13 NAME="Updated Event" LOCATION="Remote" DATE="10/12/21" TIME="9pm" sh curl-scripts/events/update.sh
 ```
 
 Response:
 
 ```md
-TP/1.1 204 No Content
+HTTP/1.1 204 No Content
 ```
 
-#### DELETE /posts/:id
+#### DELETE /events/:id
 
 Request:
 
 ```sh
-curl "https://evnt-api.herokuapp.com/$POST_ID" \
+curl "https://evnt-api.herokuapp.com/events/${ID}/" \
   --include \
-  --request DELETE
-  --header "Authorization: Bearer $TOKEN"
+  --request DELETE \
+  --header "Authorization: Token ${TOKEN}"
+
+echo
 ```
 
 ```sh
-TOKEN=33ad6372f795694b333ec5f329ebeaaa POST_ID=609be62ec23acd1c3c28ac91 curl-scripts/posts/destroy.sh
+TOKEN=c0c983a1199c5c3cc4ed319da6e7c41609c7e6dc ID=13 sh curl-scripts/events/delete.sh
 ```
 
 Response:
 
 ```md
-TP/1.1 204 No Content
+HTTP/1.1 204 No Content
 ```
-
-## [License](LICENSE)
-
-1. All content is licensed under a CC­BY­NC­SA 4.0 license.
-1. All software code is licensed under GNU GPLv3. For commercial use or
-    alternative licensing, please contact legal@ga.co.
